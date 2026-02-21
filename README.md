@@ -195,7 +195,21 @@ Output:
 
   ALL TIERS COMPLETE
 ```
+## Tier 6 Upgrade – Quantum Can Suck It
 
+We took the rock-solid RSA-PSS baseline...  
+and said **fuck quantum attacks**.
+
+New in this version:
+- Classical RSA-PSS-4096 (your original, polished & FIPS-friendly)
+- Post-quantum Dilithium5 + Falcon-1024 (NIST-approved ML-DSA & FN-DSA)
+- **Hybrid mode** — signs with both, bundles them together
+- Default: quantum-safe (use_pq=True) with classical fallback
+
+Harvest-Now-Decrypt-Later crew just got permanently retired.  
+This is Tier 6 on steroids — built for silicon + carbon happiness first.
+
+See `tier6_signatures.py` for the full muscle.
 ---
 
 ## Run the tests

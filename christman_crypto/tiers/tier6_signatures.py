@@ -1,5 +1,5 @@
 """
-Tier 6 — SIGNATURES: RSA-PSS + Post-Quantum Hybrid (Updated)
+Tier  6 — SIGNATURES: RSA-PSS + Post-Quantum Hybrid (Updated)
 =================================================
 Non-repudiation: prove who sent something and that it wasn't changed.
 

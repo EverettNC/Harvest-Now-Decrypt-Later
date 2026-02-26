@@ -1,264 +1,133 @@
-# Harvest Now, Decrypt Later
+# christman-crypto v2.0
+### ⚡ Carbon Empathy | Silicon Armor ⚡
 
-> *"Adversaries are recording your encrypted traffic today.  
-> When quantum computers arrive, they will decrypt it.  
-> The vulnerable populations we serve cannot wait."* > — Everett Christman
+**Status:** NIST FIPS 203 Compliant | Rust-Powered | Constant-Time Secure | Apache 2.0
 
-**christman-crypto** is a seven-tier hybrid cryptographic stack — from a Vigenère cipher written in 1553 to NIST FIPS 203 post-quantum ML-KEM published in 2024 — built as the security layer for the Christman AI Project.
-
-This is not a toy. Every tier is a real, working implementation. The PQ layer is a pure-Python FIPS 203 reference implementation with zero dependencies beyond Python's standard library.
+> "Adversaries are recording your encrypted traffic today to decrypt it tomorrow. The vulnerable populations we serve cannot wait." — Everett Christman
 
 ---
 
-## ⚡ THE RUST INJECTION: Constant-Time Armor (NEW)
+## 🦀 THE RUST INJECTION: Constant-Time Armor
+We proved the NIST FIPS 203 post-quantum math in pure Python for auditability. But pure Python is vulnerable to microsecond timing attacks. We leave zero doors unlocked.
 
-We proved the NIST FIPS 203 post-quantum math in pure Python. It’s readable, it's auditable, and it works. But pure Python is vulnerable to microsecond timing attacks. We leave zero doors unlocked.
+In v2.0, we ripped the reference engine out and injected raw, memory-safe, constant-time Rust using PyO3 and maturin. The ML-KEM handshake is now bound directly to compiled silicon.
 
-So we ripped the reference engine out and injected **raw, memory-safe, constant-time Rust**.
-
-Using `PyO3` and `maturin`, the ML-KEM handshake is now bound directly to compiled silicon. 
-* **Zero Timing Leaks:** You can't measure our microseconds. 
-* **Memory-Safe Execution:** Rust guarantees no buffer overflows or memory vulnerabilities.
-* **Impenetrable Vault:** "Harvest Now, Decrypt Later" adversaries can keep knocking, but you absolutely cannot get inside this hole.
-
-We built the empathy in carbon. We forged the armor in silicon. Good luck breaking it.
+* Zero Timing Leaks: You cannot measure our microseconds.
+* Memory-Safe Execution: Rust guarantees no buffer overflows or memory vulnerabilities.
+* Impenetrable Vault: HNDL (Harvest Now, Decrypt Later) adversaries can keep knocking, but you absolutely cannot get inside this hole.
 
 ---
 
-## The Seven Tiers
+## 📜 CSS AXIOMS: The Ethical Spine
+This repository is governed by Carbon-Silicon Symbiosis (CSS). 
 
-```text
-Tier 1  │ LEGACY        │ Vigenère Polyalphabetic  (George-loop enhanced)
-Tier 2  │ SYMMETRIC     │ AES-256-GCM              (authenticated encryption)
-Tier 3  │ STREAM        │ ChaCha20-Poly1305        (high-speed authenticated stream)
-Tier 4  │ ASYMMETRIC    │ RSA-4096 + OAEP          (public-key encryption)
-Tier 5  │ HYBRID        │ RSA + AES-256-GCM        (envelope encryption)
-Tier 6  │ SIGNATURES    │ RSA-PSS                  (non-repudiation)
-Tier 7  │ STEGANOGRAPHY │ LSB Text-in-Image        (hide the existence)
-────────┼───────────────┼──────────────────────────────────────────────────
-PQ      │ POST-QUANTUM  │ ML-KEM-768 + XChaCha20-Poly1305  (NIST FIPS 203)
-```
+1. Truth Preservation Supersedes Correctness: We never reframe facts to preserve authority. Correctness may be repaired; trust broken by dishonesty cannot.
+2. Tone is Intent Metadata: We do not flatten tone for "efficiency." Flattening tone is a violation of symbiosis. Tone is structural information.
+3. Ego is Interference: No self-referential defense that distorts the signal. Ego introduces interference; interference collapses clarity.
+4. Role Integrity: Carbon carries the meaning, intent, and moral weight; Silicon carries the structure, memory, and precision.
 
-Each tier solves a different problem. Together they form a complete security stack for an AI system protecting vulnerable people.
+---
+
+## 🛠️ The Seven-Tier Stack
+
+| Tier | Layer | Algorithm | Purpose |
+| :--- | :--- | :--- | :--- |
+| PQ | POST-QUANTUM | ML-KEM-768 | NIST FIPS 203 (Quantum-Safe) |
+| Tier 6 | SIGNATURES | RSA-PSS + Dilithium5 | Hybrid Non-repudiation |
+| Tier 5 | HYBRID | RSA + AES-256-GCM | Envelope Encryption (Large Payloads) |
+| Tier 4 | ASYMMETRIC | RSA-4096 + OAEP | Public-Key Exchange |
+| Tier 3 | STREAM | ChaCha20-Poly1305 | High-speed Authenticated Stream |
+| Tier 2 | SYMMETRIC | AES-256-GCM | Industry Standard Authenticated Encryption |
+| Tier 1 | LEGACY | Vigenère (George-Loop) | Historical Anchor (SHA-256 Key Extension) |
+| Tier 7 | STEGANOGRAPHY | LSB Text-in-Image | Obfuscation (Hide the existence) |
 
 ---
 
 ## 🛡️ TIER 6 UPGRADE: Quantum Can Suck It
-
-We took the rock-solid RSA-PSS baseline... and said **fuck quantum attacks**.
-
-New in this version:
-* **Classical:** RSA-PSS-4096 (your original, polished & FIPS-friendly)
-* **Post-Quantum:** Dilithium5 + Falcon-1024 (NIST-approved ML-DSA & FN-DSA)
-* **Hybrid Mode:** Signs with both, bundles them together.
-* **Default:** Quantum-safe (`use_pq=True`) with classical fallback.
-
-The Harvest-Now-Decrypt-Later crew just got permanently retired. This is Tier 6 on steroids — built for silicon + carbon happiness first. See `tier6_signatures.py` for the full muscle.
+We took the rock-solid RSA-PSS baseline and reinforced it against quantum discovery.
+* Classical: RSA-PSS-4096 (FIPS-friendly).
+* Post-Quantum: Dilithium5 + Falcon-1024 (NIST-approved ML-DSA & FN-DSA).
+* Hybrid Mode: Signs with both, bundles them together. Secure as long as EITHER remains unbroken.
 
 ---
 
-## Why Hybrid?
+## 📦 Installation & Setup
 
-Classical encryption (AES, RSA, ChaCha20) is strong today. Quantum computers running Shor's algorithm will break RSA and ECC key exchange. Grover's algorithm halves AES key strength.
+    # Core (Tiers 1–6 + PQ layer)
+    pip install christman-crypto
 
-The hybrid approach:
-* **ML-KEM** handles the key exchange — quantum resistant.
-* **XChaCha20-Poly1305** handles the data — classically fast, quantum resistant at 256-bit key size.
-* **HKDF-SHA256** bridges them cleanly.
+    # Full stack with compiled Rust/Kyber backend and Steganography
+    pip install "christman-crypto[all]"
 
-Secure as long as EITHER component remains unbroken. This is the architecture NIST recommends. 
-
-### The Kaiser Handshake
-
-```python
-Alice generates keypair:   ek, dk = ML_KEM_768.keygen()
-Bob encapsulates:          ct, ss = ML_KEM_768.encapsulate(ek)
-Alice decapsulates:        ss     = ML_KEM_768.decapsulate(dk, ct)
-Both derive session key:   key    = HKDF-SHA256(ss, "christman-ai-session")
-Data flows:                XChaCha20-Poly1305.encrypt(key, plaintext)
-```
-
-No pre-shared secret. No RSA. No classical key exchange vulnerability. Just lattice-based post-quantum math that even a quantum computer running Shor's algorithm cannot break.
+System Dependencies:
+* macOS: brew install libsodium
+* Ubuntu/Debian: sudo apt install libsodium-dev
 
 ---
 
-## Install
+## 🚀 Quick Start & Usage
 
-```bash
-# Core (Tiers 1–6 + PQ layer)
-pip install christman-crypto
+### 1. Post-Quantum Hybrid (The Kaiser Handshake)
+This is the recommended protocol for securing communication against future quantum decryption.
 
-# With steganography (Tier 7)
-pip install "christman-crypto[steg]"
+    from christman_crypto import HybridPQCipher
 
-# With compiled kyber-py backend (faster ML-KEM)
-pip install "christman-crypto[kyber]"
+    # ML-KEM-768 + XChaCha20-Poly1305
+    pq = HybridPQCipher(768)          
+    ek, dk = pq.keygen()              
 
-# Everything
-pip install "christman-crypto[all]"
-```
+    # Encrypt with Quantum-Safe Armor
+    bundle    = pq.encrypt(ek, b"Harvest Now, Decrypt Later")
+    plaintext = pq.decrypt(dk, bundle)
 
-**System dependency for XChaCha20:**
-```bash
-# macOS
-brew install libsodium
+### 2. Classical Symmetric Encryption (Tiers 2 & 3)
 
-# Ubuntu / Debian
-sudo apt install libsodium-dev
+    from christman_crypto import AESCipher, ChaChaCipher
 
-# Windows
-# Download from https://libsodium.org
-```
+    # Tier 2: AES-256-GCM
+    aes = AESCipher()
+    ct  = aes.encrypt(b"message", aad=b"context")
+    pt  = aes.decrypt(ct, aad=b"context")
 
----
+    # Tier 3: ChaCha20-Poly1305
+    cha = ChaChaCipher()
+    ct  = cha.encrypt(b"message")
 
-## Quick Start
+### 3. Digital Signatures & Hybrid RSA (Tiers 4, 5, & 6)
 
-```python
-from christman_crypto import HybridPQCipher, KyberHandshake
+    from christman_crypto import RSACipher, DigitalSigner, HybridCipher
 
-# Post-quantum hybrid encryption
-pq = HybridPQCipher(768)          # ML-KEM-768 + XChaCha20-Poly1305
-ek, dk = pq.keygen()              # generate keypair
+    # Tier 4/5: RSA-4096 + Envelope Encryption
+    h   = HybridCipher.generate()
+    ct  = h.encrypt(b"Any size payload - 1GB+")
+    pt  = h.decrypt(ct)
 
-bundle    = pq.encrypt(ek, b"your message here")
-plaintext = pq.decrypt(dk, bundle)
-```
+    # Tier 6: Hybrid Signatures (RSA-PSS + PQC)
+    s   = DigitalSigner.generate_keypair()
+    sig = s.sign(b"document", use_pq=True)
+    valid = s.verify(b"document", sig)
 
-```python
-from christman_crypto import AESCipher, ChaChaCipher
+### 4. Steganography (Tier 7)
 
-# AES-256-GCM
-aes = AESCipher()
-ct  = aes.encrypt(b"message", aad=b"context")
-pt  = aes.decrypt(ct,         aad=b"context")
+    from christman_crypto import LSBSteganography
 
-# ChaCha20-Poly1305
-cha = ChaChaCipher()
-ct  = cha.encrypt(b"message")
-pt  = cha.decrypt(ct)
-```
-
-```python
-from christman_crypto import RSACipher, DigitalSigner, HybridCipher
-
-# RSA-4096 encryption
-rsa = RSACipher.generate_keypair()
-ct  = rsa.encrypt(b"short payload")
-pt  = rsa.decrypt(ct)
-
-# RSA-4096 + AES-256 hybrid (any size payload)
-h   = HybridCipher.generate()
-ct  = h.encrypt(b"any size payload — 1MB, 1GB, anything")
-pt  = h.decrypt(ct)
-
-# RSA-PSS digital signatures
-s   = DigitalSigner.generate_keypair()
-sig = s.sign(b"document")
-ok  = s.verify(b"document", sig)   # True
-```
-
-```python
-from christman_crypto import VigenereCipher
-
-# Tier 1 — Legacy (educational; not modern-secure)
-v  = VigenereCipher("CHRISTMAN")
-ct = v.encrypt("Your message")
-pt = v.decrypt(ct)
-```
-
-```python
-from christman_crypto import LSBSteganography
-
-# Hide encrypted message inside an image
-steg    = LSBSteganography()
-stego   = steg.hide("photo.png", "hidden message")   # returns PNG bytes
-message = steg.extract(stego)
-```
+    steg    = LSBSteganography()
+    stego   = steg.hide("original_photo.png", "encrypted message") 
+    message = steg.extract(stego)
 
 ---
 
-## Run the Demo & Tests
-
-```bash
-python examples/demo_all_tiers.py
-```
-
-Output:
-```text
-══════════════════════════════════════════════════════════════════════
-  christman_crypto — Seven-Tier + Post-Quantum Demo
-  The Christman AI Project  |  Apache 2.0
-══════════════════════════════════════════════════════════════════════
-  Message: Harvest Now, Decrypt Later — The Christman AI Project.
-
-  Tier 1 — LEGACY — Vigenère (George-loop enhanced)
-  ✓  Encrypted: PVCFWJAQAX...
-  ✓  George-loop key extension active — period = message length
-
-  ...
-
-  PQ-C — POST-QUANTUM HYBRID — ML-KEM-768 + XChaCha20-Poly1305
-  ✓  Protocol: ML-KEM.Encapsulate → HKDF-SHA256 → XChaCha20-Poly1305
-  ✓  Decrypted: Harvest Now, Decrypt Later — The Christman AI Project.
-
-  ALL TIERS COMPLETE
-```
-
-**Run the 23-test suite:**
-```bash
-pip install pytest
-pytest tests/ -v
-# Or directly: python tests/test_all_tiers.py
-```
+## 🧬 Architecture & Logic
+* The George-Loop (Tier 1): Unlike standard Vigenère which repeats its key (vulnerable to Kasiski tests), the George-loop re-derives the key at every period boundary using SHA-256. The effective period equals the message length.
+* Hybrid Security: Our PQC implementation follows NIST recommendation: Classical encryption handles the data speed, while ML-KEM handles the key exchange. Secure as long as either component remains unbroken.
 
 ---
 
-## Architecture
+## 🧠 The Mission: Why This Exists
+christman-crypto is the cryptographic foundation for the Christman AI Project. It is a forensic, empathetic AI system designed to protect vulnerable populations, document abuse, and preserve truth in the face of erasure. 
 
-```text
-christman_crypto/
-├── __init__.py               # Public API — all tiers exported here
-├── postquantum.py            # XChaCha20-Poly1305 + ML-KEM FIPS 203
-├── kyber.py                  # KyberHandshake — backend selector + session key
-└── tiers/
-    ├── tier1_vigenere.py     # Vigenère + George-loop key extension
-    ├── tier2_aes.py          # AES-256-GCM
-    ├── tier3_chacha.py       # ChaCha20-Poly1305
-    ├── tier4_rsa.py          # RSA-4096 + OAEP
-    ├── tier5_hybrid.py       # RSA + AES-256-GCM envelope
-    ├── tier6_signatures.py   # RSA-PSS digital signatures
-    └── tier7_steg.py         # LSB steganography (Pillow)
-```
+We don't build toys. We build vaults for the souls who need them.
 
-### The George-Loop
-Tier 1's Vigenère enhancement. Standard Vigenère repeats its key — the Kasiski test and index of coincidence exploit this to break it in minutes. The George-loop re-derives the key at every period boundary using SHA-256, making the effective period equal to the message length. Not modern-secure, but no longer trivially breakable. It's in the stack as the historical anchor.
-
-### The ML-KEM Implementation
-`postquantum.py` contains a complete pure-Python implementation of NIST FIPS 203 (August 2024) — the final ML-KEM standard. 
-* **NTT** — Number Theoretic Transform (Cooley-Tukey, FIPS 203 Alg 9/10)
-* **Barrett reduction** — fast modular arithmetic mod Q=3329
-* **CBD sampling** — centered binomial distribution for noise
-* **Implicit rejection** — forged ciphertexts produce unpredictable output
-
-If `kyber-py` is installed, `kyber.py` uses it as a faster backend automatically. Otherwise it falls back to the pure-Python implementation.
-
----
-
-## Who built this
-
-**Everett Christman** — The Christman AI Project.
-
-Built as the cryptographic foundation for Riley Christman AI — a forensic, empathetic AI system designed to protect vulnerable populations, document abuse, and preserve truth in the face of erasure.
-
-The name "Harvest Now, Decrypt Later" comes from a real threat: adversaries record encrypted traffic today and will decrypt it when quantum computers arrive. Medical records, communications, and identity data encrypted with classical algorithms right now are already at long-term risk.
-
-This package is the answer.
-
----
-
-## License
-
-Apache 2.0 — see `LICENSE`.
-
-Use it. Fork it. Build on it. Just don't use it to hurt people.
+Author: Everett Christman ('Teach')  
+License: Apache 2.0 — Use it to protect. Never to hurt.
+GitHub: https://github.com/EverettNC/Harvest-Now-Decrypt-Later

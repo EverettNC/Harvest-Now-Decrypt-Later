@@ -12,3 +12,14 @@ fn christman_pq_rust(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(rust_engine_status, m)?)?;
     Ok(())
 }
+// Hardening the Silicon: Constant-Time Comparison
+pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut res = 0;
+    for (x, y) in a.iter().zip(b.iter()) {
+        res |= x ^ y; // XOR every byte—if they are the same, res stays 0
+    }
+    res == 0 // Only true if every single XOR was a match
+}

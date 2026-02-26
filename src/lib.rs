@@ -7,23 +7,17 @@ fn rust_engine_status() -> PyResult<String> {
 }
 
 /// THE ARMOR: Constant-time comparison to prevent timing attacks.
-/// This function XORs every byte in the sequence. It does NOT exit early 
-/// if a mismatch is found, ensuring the execution time is identical 
-/// regardless of the input's validity.
 #[pyfunction]
 fn constant_time_eq(a: &[u8], b: &[u8]) -> PyResult<bool> {
     if a.len() != b.len() {
-        // Even length checks can leak information; in a full 
-        // production hardening, we would pad or hash both first.
         return Ok(false);
     }
     
     let mut res = 0;
     for (x, y) in a.iter().zip(b.iter()) {
-        res |= x ^ y; // XOR bitwise comparison
+        res |= x ^ y;
     }
     
-    // If res is 0, every single byte matched.
     Ok(res == 0)
 }
 

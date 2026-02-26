@@ -1,0 +1,13 @@
+[package]
+name = "christman_pq_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+# "cdylib" tells Rust to compile this as a dynamic library Python can load
+name = "christman_pq_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+# PyO3 is the bridge between Python and Rust
+pyo3 = { version = "0.20.0", features = ["extension-module"] }

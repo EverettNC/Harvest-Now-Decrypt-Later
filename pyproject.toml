@@ -1,13 +1,13 @@
 [build-system]
 requires      = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.backends.legacy:build"
+build-backend = "setuptools.build_meta"
 
 [project]
 name        = "christman-crypto"
 version     = "1.0.0"
 description = "Seven-tier hybrid cryptographic stack — Vigenère through post-quantum ML-KEM. The Christman AI Project."
 readme      = "README.md"
-license     = { file = "LICENSE" }
+license     = "Apache-2.0"
 authors     = [{ name = "Everett Christman", email = "everett@christmanaai.org" }]
 keywords    = [
     "cryptography", "post-quantum", "ml-kem", "kyber", "fips-203",
@@ -18,7 +18,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

@@ -1,2 +1,51 @@
-*.pyc
+# =========================
+# Python
+# =========================
+# Byte-compiled / optimized / DLL files
 __pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# =========================
+# Rust & Maturin (PyO3)
+# =========================
+# Rust compilation artifacts
+/target/
+Cargo.lock
+
+# =========================
+# OS & IDEs
+# =========================
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+
+# =========================
+# Cryptography Binaries
+# =========================
+# Ignore downloaded C-libraries dropped in for local testing
+libsodium.dll
+*.so
+*.dylib

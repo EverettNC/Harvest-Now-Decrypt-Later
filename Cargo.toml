@@ -1,33 +1,13 @@
-use pyo3::prelude::*;
+[package]
+name = "christman_pq_rust"
+version = "0.1.0"
+edition = "2021"
 
-/// Silicon Status: Confirms the Rust backend is active and hardened.
-#[pyfunction]
-fn rust_engine_status() -> PyResult<String> {
-    Ok("The Christman AI Project: Constant-time Rust backend is ONLINE and HARDENED.".to_string())
-}
+[lib]
+# "cdylib" tells Rust to compile this as a dynamic library Python can load
+name = "christman_pq_rust"
+crate-type = ["cdylib"]
 
-/// THE ARMOR: Constant-time comparison to prevent timing attacks.
-/// This function XORs every byte in the sequence. It does NOT exit early 
-/// if a mismatch is found, ensuring the execution time is identical 
-/// regardless of the input's validity.
-#[pyfunction]
-fn constant_time_eq(a: &[u8], b: &[u8]) -> PyResult<bool> {
-    if a.len() != b.len() {
-        return Ok(false);
-    }
-    
-    let mut res = 0;
-    for (x, y) in a.iter().zip(b.iter()) {
-        res |= x ^ y;
-    }
-    
-    Ok(res == 0)
-}
-
-/// The Christman PQ Rust Module
-#[pymodule]
-fn christman_pq_rust(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(rust_engine_status, m)?)?;
-    m.add_function(wrap_pyfunction!(constant_time_eq, m)?)?;
-    Ok(())
-}
+[dependencies]
+# PyO3 is the bridge between Python and Rust
+pyo3 = { version = "0.20.0", features = ["extension-module"] }

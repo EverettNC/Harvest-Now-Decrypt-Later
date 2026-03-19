@@ -129,5 +129,9 @@ christman-crypto is the cryptographic foundation for the Christman AI Project. I
 We don't build toys. We build vaults for the souls who need them.
 
 Author: Everett Christman ('Teach')  
-License: Apache 2.0 — Use it to protect. Never to hurt.
+
+## ⚖️ THE DIGNITY CLAUSE & LICENSING
+
+**The Christman Sovereign Architecture License (v1.0)** The software in these repositories is built to protect human dignity. It may be used locally for educational, academic, and personal survival. **Commercial exploitation, corporate integration, or unauthorized reverse-engineering of Resonance-Q™ or OpenSmell is strictly prohibited without an Enterprise Agreement.**
+
 GitHub: https://github.com/EverettNC/Harvest-Now-Decrypt-Later

@@ -148,36 +148,49 @@ class HybridSigner:
         self.classic = DigitalSigner()
         self.pq = PQSigner(pq_algo) if use_pq else None
         self.use_pq = use_pq
+        # Persistent PQ keypair -- generated once, reused across sign/verify calls.
+        # The public key is what callers must hold to verify PQ signatures.
+        self._pq_pk: Optional[bytes] = None
+        self._pq_sk: Optional[bytes] = None
+        if self.pq:
+            self._pq_pk, self._pq_sk = self.pq.keygen()
 
     def keygen(self):
         """Returns (classic_pk, classic_sk, pq_pk, pq_sk) if PQ enabled."""
         c_pk, c_sk = self.classic.generate_keypair().export_public_pem(), self.classic.export_private_pem()
         if self.pq:
-            p_pk, p_sk = self.pq.keygen()
-            return c_pk, c_sk, p_pk, p_sk
+            return c_pk, c_sk, self._pq_pk, self._pq_sk
         return c_pk, c_sk, None, None
 
     def sign(self, message: bytes) -> bytes:
-        """Sign with classic + optional PQ (bundled)."""
+        """Sign with classic + PQ (bundled). PQ keypair is persistent -- verifiable."""
         classic_sig = self.classic.sign(message)
 
-        if self.pq:
-            _, pq_sk = self.pq.keygen()  # Demo: fresh keys (production: manage keys separately)
-            pq_sig = self.pq.sign(pq_sk, message)
+        if self.pq and self._pq_sk is not None:
+            pq_sig = self.pq.sign(self._pq_sk, message)
             return bundle_hybrid(classic_sig, pq_sig)
 
         return classic_sig
 
-    def verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
-        """Verify hybrid or classic-only signature."""
-        if self.pq and len(signature) > 1000:  # Rough hybrid detect
+    def verify(self, message: bytes, signature: bytes,
+               classic_pk: bytes, pq_pk: Optional[bytes] = None) -> bool:
+        """Verify hybrid or classic-only signature.
+
+        Args:
+            message:    The original message bytes.
+            signature:  Output of sign() -- hybrid bundle or classical sig.
+            classic_pk: RSA public key (PEM bytes).
+            pq_pk:      PQ public key bytes from keygen(). Required for hybrid verify.
+        """
+        if self.pq and pq_pk is not None:
             try:
                 classic_sig, pq_sig = unbundle_hybrid(signature)
-                # Note: production needs to split public keys too
-                return self.classic.verify(message, classic_sig, public_key)  # simplified
-            except:
-                pass
-        return self.classic.verify(message, signature, public_key)
+                classic_ok = self.classic.verify(message, classic_sig)
+                pq_ok = self.pq.verify(pq_pk, message, pq_sig)
+                return classic_ok and pq_ok
+            except Exception:
+                return False
+        return self.classic.verify(message, signature)
 
 
 # ────────────────────────────────────────────────

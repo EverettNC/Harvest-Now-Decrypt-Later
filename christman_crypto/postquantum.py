@@ -675,12 +675,11 @@ class HybridPQCipher:
 
     def _hkdf(self, ikm: bytes) -> bytes:
         """HKDF-SHA256 -- derive 32-byte XChaCha20 key from KEM shared secret."""
-        # HKDF-Extract (salt=zeros for this application)
-        salt = bytes(32)
-        prk  = hashlib.sha256(salt + ikm).digest()   # simplified HMAC-extract
         import hmac as _hmac
+        # HKDF-Extract: PRK = HMAC-SHA256(salt, IKM)
+        salt = bytes(32)
         prk  = _hmac.new(salt, ikm, hashlib.sha256).digest()
-        # HKDF-Expand
+        # HKDF-Expand: OKM = HMAC-SHA256(PRK, info || 0x01)
         okm  = _hmac.new(prk, self.HKDF_INFO + b'\x01', hashlib.sha256).digest()
         return okm[:32]
 

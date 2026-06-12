@@ -170,7 +170,8 @@ class HybridSigner:
 
     def keygen(self):
         """Returns (classic_pk, classic_sk, pq_pk, pq_sk) if PQ enabled."""
-        c_pk, c_sk = self.classic.generate_keypair().export_public_pem(), self.classic.export_private_pem()
+        c_pk = self.classic.export_public_pem()
+        c_sk = self.classic.export_private_pem()
         if self.pq:
             return c_pk, c_sk, self._pq_pk, self._pq_sk
         return c_pk, c_sk, None, None
@@ -223,4 +224,12 @@ if __name__ == "__main__":
     signer_hybrid = HybridSigner(use_pq=True, pq_algo="Dilithium5")
     sig_hybrid = signer_hybrid.sign(msg)
     print("Hybrid signature length:", len(sig_hybrid))
-    print("Verify hybrid:", signer_hybrid.verify(msg, sig_hybrid, signer_hybrid.classic.export_public_pem()))
+    print(
+        "Verify hybrid:",
+        signer_hybrid.verify(
+            msg,
+            sig_hybrid,
+            signer_hybrid.classic.export_public_pem(),
+            signer_hybrid._pq_pk,
+        ),
+    )

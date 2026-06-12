@@ -15,7 +15,7 @@ from christman_crypto.tiers.tier2_aes        import AESCipher
 from christman_crypto.tiers.tier3_chacha     import ChaChaCipher
 from christman_crypto.tiers.tier4_rsa        import RSACipher
 from christman_crypto.tiers.tier5_hybrid     import HybridCipher
-from christman_crypto.tiers.tier6_signatures import DigitalSigner
+from christman_crypto.tiers.tier6_signatures import DigitalSigner, HybridSigner
 from christman_crypto.postquantum            import XChaCha20Cipher, MLKEM, HybridPQCipher
 from christman_crypto.kyber                  import KyberHandshake
 
@@ -111,6 +111,24 @@ def test_tier6_pem_roundtrip():
     verifier = DigitalSigner.from_pem(public_pem=pub)
     assert verifier.verify(MSG, sig) is True
 
+def _require_oqs():
+    try:
+        import oqs  # noqa: F401
+    except ImportError:
+        pytest.skip("liboqs-python not installed")
+
+def test_tier6_hybrid_sign_verify():
+    _require_oqs()
+    s = HybridSigner(use_pq=True)
+    sig = s.sign(MSG)
+    assert s.verify(MSG, sig, s.classic.export_public_pem(), s._pq_pk) is True
+
+def test_tier6_hybrid_tamper_detected():
+    _require_oqs()
+    s = HybridSigner(use_pq=True)
+    sig = s.sign(MSG)
+    assert s.verify(b"tampered message", sig, s.classic.export_public_pem(), s._pq_pk) is False
+
 # ── XChaCha20 (PQ layer Module 1) ────────────────────────────────────────────
 def test_xchacha20_roundtrip():
     x   = XChaCha20Cipher()
@@ -184,6 +202,8 @@ if __name__ == "__main__":
         ("Tier 6 — RSA-PSS sign/verify",       test_tier6_sign_verify),
         ("Tier 6 — RSA-PSS tamper detected",   test_tier6_tamper_detected),
         ("Tier 6 — RSA-PSS PEM roundtrip",     test_tier6_pem_roundtrip),
+        ("Tier 6 — Hybrid PQ sign/verify",     test_tier6_hybrid_sign_verify),
+        ("Tier 6 — Hybrid PQ tamper detected", test_tier6_hybrid_tamper_detected),
         ("PQ    — XChaCha20 roundtrip",        test_xchacha20_roundtrip),
         ("PQ    — XChaCha20 tamper detected",  test_xchacha20_tamper_detected),
         ("PQ    — ML-KEM-512",                 lambda: test_mlkem_roundtrip(512)),

@@ -1,20 +1,17 @@
 # christman-crypto v2.0
 ### ⚡ Carbon Empathy | Silicon Armor ⚡
 
-**Status:** NIST FIPS 203 Compliant | Rust-Powered | Constant-Time Secure | Apache 2.0
+**Status:** NIST FIPS 203 ML-KEM-768 · Live seven-tier vault · Apache 2.0
 
 > "Adversaries are recording your encrypted traffic today to decrypt it tomorrow. The vulnerable populations we serve cannot wait." — Everett Christman
 
 ---
 
-## 🦀 THE RUST INJECTION: Constant-Time Armor
-We proved the NIST FIPS 203 post-quantum math in pure Python for auditability. But pure Python is vulnerable to microsecond timing attacks. We leave zero doors unlocked.
-
-In v2.0, we ripped the reference engine out and injected raw, memory-safe, constant-time Rust using PyO3 and maturin. The ML-KEM handshake is now bound directly to compiled silicon.
-
-* Zero Timing Leaks: You cannot measure our microseconds.
-* Memory-Safe Execution: Rust guarantees no buffer overflows or memory vulnerabilities.
-* Impenetrable Vault: HNDL (Harvest Now, Decrypt Later) adversaries can keep knocking, but you absolutely cannot get inside this hole.
+## 🦀 HNDL Seal Path (what runs today)
+* **PQ layer:** ML-KEM-768 (NIST FIPS 203) in Python for auditability + **XChaCha20-Poly1305** via libsodium.
+* **Seven-tier vault:** PQ + tiers 1–7 loaded from this repo path (CHRISTMAN_MIND uses `HNDL_CRYPTO_REPO` — no `pip install -e .`).
+* **Rust PyO3 (`christman_pq_rust`):** optional build target for constant-time helpers; not on the ML-KEM hot path until wired and tested.
+* **Mission:** Harvest Now, Decrypt Later — adversaries record encrypted traffic today to decrypt it tomorrow.
 
 ---
 
@@ -53,15 +50,16 @@ We took the rock-solid RSA-PSS baseline and reinforced it against quantum discov
 
 ## 📦 Installation & Setup
 
-    # Core (Tiers 1–6 + PQ layer)
-    pip install christman-crypto
+**CHRISTMAN_MIND integration (recommended):** clone this repo and point at it — do **not** `pip install -e .` (pulls pip dependencies).
 
-    # Full stack with compiled Rust/Kyber backend and Steganography
-    pip install "christman-crypto[all]"
+```bash
+export HNDL_CRYPTO_REPO=~/Harvest-Now-Decrypt-Later
+python3 scripts/smoke_pq.py   # PQ round-trip
+```
 
-System Dependencies:
-* macOS: brew install libsodium
-* Ubuntu/Debian: sudo apt install libsodium-dev
+System dependency for PQ seal: **libsodium** (`brew install libsodium` on macOS).
+
+Optional: `pip install liboqs-python` for tier-6 hybrid signatures; `pip install cryptography` if tiers 2–5 are not already in your Python env.
 
 ---
 
@@ -102,10 +100,11 @@ This is the recommended protocol for securing communication against future quant
     ct  = h.encrypt(b"Any size payload - 1GB+")
     pt  = h.decrypt(ct)
 
-    # Tier 6: Hybrid Signatures (RSA-PSS + PQC)
-    s   = DigitalSigner.generate_keypair()
-    sig = s.sign(b"document", use_pq=True)
-    valid = s.verify(b"document", sig)
+    # Tier 6: Hybrid Signatures (RSA-PSS + Dilithium5) — requires liboqs-python
+    from christman_crypto.tiers.tier6_signatures import HybridSigner
+    s   = HybridSigner(use_pq=True)
+    sig = s.sign(b"document")
+    valid = s.verify(b"document", sig, s.classic.export_public_pem(), s._pq_pk)
 
 ### 4. Steganography (Tier 7)
 

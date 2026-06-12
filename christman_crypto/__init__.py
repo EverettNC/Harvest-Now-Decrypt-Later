@@ -22,15 +22,18 @@ __version__  = "1.0.0"
 __author__   = "Everett Christman"
 __project__  = "The Christman AI Project"
 
-from .tiers.tier1_vigenere    import VigenereCipher
-from .tiers.tier2_aes         import AESCipher
-from .tiers.tier3_chacha      import ChaChaCipher
-from .tiers.tier4_rsa         import RSACipher
-from .tiers.tier5_hybrid      import HybridCipher
-from .tiers.tier6_signatures  import DigitalSigner
-from .tiers.tier7_steg        import LSBSteganography
-from .postquantum             import XChaCha20Cipher, MLKEM, HybridPQCipher
-from .kyber                   import KyberHandshake
+from .tiers.tier1_vigenere import VigenereCipher
+from .tiers.tier2_aes      import AESCipher
+from .tiers.tier3_chacha   import ChaChaCipher
+from .tiers.tier4_rsa      import RSACipher
+from .tiers.tier5_hybrid   import HybridCipher
+from .postquantum          import XChaCha20Cipher, MLKEM, HybridPQCipher
+from .kyber                import KyberHandshake
+
+_LAZY_IMPORTS = {
+    "DigitalSigner":    (".tiers.tier6_signatures", "DigitalSigner"),
+    "LSBSteganography": (".tiers.tier7_steg", "LSBSteganography"),
+}
 
 __all__ = [
     "VigenereCipher",
@@ -45,3 +48,12 @@ __all__ = [
     "HybridPQCipher",
     "KyberHandshake",
 ]
+
+
+def __getattr__(name: str):
+    if name in _LAZY_IMPORTS:
+        module_path, attr = _LAZY_IMPORTS[name]
+        import importlib
+        module = importlib.import_module(module_path, __package__)
+        return getattr(module, attr)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

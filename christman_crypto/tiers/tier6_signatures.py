@@ -22,8 +22,17 @@ Dependencies:
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.exceptions import InvalidSignature
-import oqs
 from typing import Tuple, Optional
+
+
+def _require_oqs():
+    try:
+        import oqs
+    except ImportError as exc:
+        raise ImportError(
+            "Post-quantum signatures require liboqs-python: pip install liboqs-python"
+        ) from exc
+    return oqs
 
 # ────────────────────────────────────────────────
 # Original Classical Baseline: RSA-PSS-4096
@@ -99,6 +108,7 @@ class PQSigner:
     """Pure post-quantum signer: Dilithium (ML-DSA) or Falcon (FN-DSA)."""
 
     def __init__(self, algo: str = "Dilithium5"):
+        oqs = _require_oqs()
         supported = oqs.get_enabled_sig_mechanisms()
         # Friendly aliases → real mechanism names
         aliases = {
@@ -114,10 +124,13 @@ class PQSigner:
         self.signer = oqs.Signature(self.algo)
 
     def keygen(self) -> Tuple[bytes, bytes]:
-        return self.signer.keypair()
+        public_key = self.signer.generate_keypair()
+        secret_key = self.signer.export_secret_key()
+        return public_key, secret_key
 
     def sign(self, sk: bytes, msg: bytes) -> bytes:
-        return self.signer.sign(msg, sk)
+        # liboqs-python holds the secret key after generate_keypair()
+        return self.signer.sign(msg)
 
     def verify(self, pk: bytes, msg: bytes, sig: bytes) -> bool:
         return self.signer.verify(msg, sig, pk)
@@ -145,7 +158,7 @@ class HybridSigner:
     """Tier 6 upgraded: RSA-PSS + Post-Quantum (default: Dilithium5)."""
 
     def __init__(self, use_pq: bool = True, pq_algo: str = "Dilithium5"):
-        self.classic = DigitalSigner()
+        self.classic = DigitalSigner.generate_keypair()
         self.pq = PQSigner(pq_algo) if use_pq else None
         self.use_pq = use_pq
         # Persistent PQ keypair -- generated once, reused across sign/verify calls.

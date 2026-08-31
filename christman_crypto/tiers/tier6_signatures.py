@@ -7,7 +7,8 @@ Original: RSA-PSS (Probabilistic Signature Scheme) with SHA-256 hashing.
 PSS is modern, provably secure (superior to PKCS#1 v1.5). Used in TLS, code signing, email.
 
 New: Post-quantum signatures (Dilithium / Falcon) + hybrid bundling.
-Protects against "Harvest Now, Decrypt Later" quantum attacks.
+This is the authenticity clock (Shor forges RSA). Confidentiality against
+Harvest Now, Decrypt Later is the ML-KEM seal in postquantum.py, not this file.
 
 What signatures give you:
   • Authenticity  — message came from the holder of the private key
@@ -190,21 +191,27 @@ class HybridSigner:
                classic_pk: bytes, pq_pk: Optional[bytes] = None) -> bool:
         """Verify hybrid or classic-only signature.
 
+        Uses the supplied public keys, not the keys on this instance.
+        A third party holding only exported public keys must be able to verify.
+
         Args:
             message:    The original message bytes.
             signature:  Output of sign() -- hybrid bundle or classical sig.
-            classic_pk: RSA public key (PEM bytes).
+            classic_pk: RSA public key (PEM bytes) from keygen().
             pq_pk:      PQ public key bytes from keygen(). Required for hybrid verify.
         """
-        if self.pq and pq_pk is not None:
+        classic = DigitalSigner.from_pem(public_pem=classic_pk)
+        if pq_pk is not None:
+            if self.pq is None:
+                return False
             try:
                 classic_sig, pq_sig = unbundle_hybrid(signature)
-                classic_ok = self.classic.verify(message, classic_sig)
+                classic_ok = classic.verify(message, classic_sig)
                 pq_ok = self.pq.verify(pq_pk, message, pq_sig)
                 return classic_ok and pq_ok
             except Exception:
                 return False
-        return self.classic.verify(message, signature)
+        return classic.verify(message, signature)
 
 
 # ────────────────────────────────────────────────
@@ -217,19 +224,17 @@ if __name__ == "__main__":
     signer_classic = HybridSigner(use_pq=False)
     msg = b"Test message for signature"
     sig_classic = signer_classic.sign(msg)
+    classic_pk, _, _, _ = signer_classic.keygen()
     print("Classical signature length:", len(sig_classic))
-    print("Verify classic:", signer_classic.verify(msg, sig_classic, signer_classic.classic.export_public_pem()))
+    print("Verify classic:", signer_classic.verify(msg, sig_classic, classic_pk))
 
     # Hybrid
-    signer_hybrid = HybridSigner(use_pq=True, pq_algo="Dilithium5")
-    sig_hybrid = signer_hybrid.sign(msg)
-    print("Hybrid signature length:", len(sig_hybrid))
-    print(
-        "Verify hybrid:",
-        signer_hybrid.verify(
-            msg,
-            sig_hybrid,
-            signer_hybrid.classic.export_public_pem(),
-            signer_hybrid._pq_pk,
-        ),
-    )
+    try:
+        signer_hybrid = HybridSigner(use_pq=True, pq_algo="Dilithium5")
+    except ImportError as exc:
+        print("Hybrid skipped:", exc)
+    else:
+        sig_hybrid = signer_hybrid.sign(msg)
+        c_pk, _, pq_pk, _ = signer_hybrid.keygen()
+        print("Hybrid signature length:", len(sig_hybrid))
+        print("Verify hybrid:", signer_hybrid.verify(msg, sig_hybrid, c_pk, pq_pk))

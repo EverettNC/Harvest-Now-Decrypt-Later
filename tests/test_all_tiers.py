@@ -16,6 +16,7 @@ from christman_crypto.tiers.tier3_chacha     import ChaChaCipher
 from christman_crypto.tiers.tier4_rsa        import RSACipher
 from christman_crypto.tiers.tier5_hybrid     import HybridCipher
 from christman_crypto.tiers.tier6_signatures import DigitalSigner, HybridSigner
+from christman_crypto.tiers.tier7_steg       import LSBSteganography
 from christman_crypto.postquantum            import XChaCha20Cipher, MLKEM, HybridPQCipher
 from christman_crypto.kyber                  import KyberHandshake
 
@@ -111,23 +112,66 @@ def test_tier6_pem_roundtrip():
     verifier = DigitalSigner.from_pem(public_pem=pub)
     assert verifier.verify(MSG, sig) is True
 
-def _require_oqs():
+def _oqs_available() -> bool:
     try:
         import oqs  # noqa: F401
+        return True
     except ImportError:
+        return False
+
+def _require_oqs():
+    if not _oqs_available():
         pytest.skip("liboqs-python not installed")
+
+def test_tier6_classic_verify_uses_supplied_public_key():
+    # Independent verifier must honor classic_pk, not its own keypair.
+    signer = HybridSigner(use_pq=False)
+    other = HybridSigner(use_pq=False)
+    sig = signer.sign(MSG)
+    signer_pk, _, _, _ = signer.keygen()
+    other_pk, _, _, _ = other.keygen()
+    assert other.verify(MSG, sig, signer_pk) is True
+    assert other.verify(MSG, sig, other_pk) is False
+    assert other.verify(b"tampered message", sig, signer_pk) is False
 
 def test_tier6_hybrid_sign_verify():
     _require_oqs()
     s = HybridSigner(use_pq=True)
     sig = s.sign(MSG)
-    assert s.verify(MSG, sig, s.classic.export_public_pem(), s._pq_pk) is True
+    pk, _, pq_pk, _ = s.keygen()
+    other = HybridSigner(use_pq=True)
+    assert other.verify(MSG, sig, pk, pq_pk) is True
 
 def test_tier6_hybrid_tamper_detected():
     _require_oqs()
     s = HybridSigner(use_pq=True)
     sig = s.sign(MSG)
-    assert s.verify(b"tampered message", sig, s.classic.export_public_pem(), s._pq_pk) is False
+    pk, _, pq_pk, _ = s.keygen()
+    other = HybridSigner(use_pq=True)
+    assert other.verify(b"tampered message", sig, pk, pq_pk) is False
+
+def _pillow_available() -> bool:
+    try:
+        from PIL import Image  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+def _require_pillow():
+    if not _pillow_available():
+        pytest.skip("Pillow not installed")
+
+def test_tier7_steg_roundtrip():
+    _require_pillow()
+    from PIL import Image
+    import io
+    img = Image.new("RGB", (100, 100), color=(200, 200, 200))
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    secret = "Harvest Now. Decrypt Later. — Everett Christman"
+    steg = LSBSteganography()
+    stego = steg.hide(buf.getvalue(), secret)
+    assert steg.extract(stego) == secret
 
 # ── XChaCha20 (PQ layer Module 1) ────────────────────────────────────────────
 def test_xchacha20_roundtrip():
@@ -202,8 +246,10 @@ if __name__ == "__main__":
         ("Tier 6 — RSA-PSS sign/verify",       test_tier6_sign_verify),
         ("Tier 6 — RSA-PSS tamper detected",   test_tier6_tamper_detected),
         ("Tier 6 — RSA-PSS PEM roundtrip",     test_tier6_pem_roundtrip),
+        ("Tier 6 — classic verify uses supplied pk", test_tier6_classic_verify_uses_supplied_public_key),
         ("Tier 6 — Hybrid PQ sign/verify",     test_tier6_hybrid_sign_verify),
         ("Tier 6 — Hybrid PQ tamper detected", test_tier6_hybrid_tamper_detected),
+        ("Tier 7 — LSB steganography roundtrip", test_tier7_steg_roundtrip),
         ("PQ    — XChaCha20 roundtrip",        test_xchacha20_roundtrip),
         ("PQ    — XChaCha20 tamper detected",  test_xchacha20_tamper_detected),
         ("PQ    — ML-KEM-512",                 lambda: test_mlkem_roundtrip(512)),
@@ -219,7 +265,7 @@ if __name__ == "__main__":
     print("  christman_crypto — Full Test Suite")
     print("  The Christman AI Project")
     print("═" * 70)
-    passed = failed = 0
+    passed = failed = skipped = 0
     for name, fn in tests:
         t0 = time.perf_counter()
         try:
@@ -230,7 +276,13 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"  ✗  {name:<45} FAILED: {e}")
             failed += 1
+        except BaseException as e:
+            if e.__class__.__name__ == "Skipped":
+                print(f"  –  {name:<45} skipped: {e}")
+                skipped += 1
+                continue
+            raise
     print("═" * 70)
-    print(f"  {passed} passed  |  {failed} failed")
+    print(f"  {passed} passed  |  {failed} failed  |  {skipped} skipped")
     print("═" * 70 + "\n")
     sys.exit(0 if failed == 0 else 1)

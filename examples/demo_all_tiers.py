@@ -20,7 +20,7 @@ from christman_crypto.postquantum            import XChaCha20Cipher, MLKEM, Hybr
 from christman_crypto.kyber                  import KyberHandshake
 
 LINE = "═" * 70
-MSG  = b"Harvest Now, Decrypt Later — The Christman AI Project."
+MSG  = b"Harvest Now, Decrypt Later -- The Christman AI Project."
 
 def header(tier, name):
     print(f"\n{LINE}")

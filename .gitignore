@@ -23,13 +23,6 @@ build/
 *.egg
 
 # =========================
-# Rust & Maturin (PyO3)
-# =========================
-# Rust compilation artifacts
-/target/
-Cargo.lock
-
-# =========================
 # OS & IDEs
 # =========================
 # macOS

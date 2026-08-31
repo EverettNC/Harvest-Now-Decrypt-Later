@@ -7,10 +7,9 @@
 
 ---
 
-## 🦀 HNDL Seal Path (what runs today)
-* **PQ layer:** ML-KEM-768 (NIST FIPS 203) in Python for auditability + **XChaCha20-Poly1305** via libsodium.
+## HNDL Seal Path (what runs today)
+* **PQ layer:** ML-KEM-768 (NIST FIPS 203) in Python — the KEM is Python-locked for auditability. **XChaCha20-Poly1305** via libsodium for the AEAD.
 * **Seven-tier vault:** PQ + tiers 1–7 loaded from this repo path (CHRISTMAN_MIND uses `HNDL_CRYPTO_REPO` — no `pip install -e .`).
-* **Rust PyO3 (`christman_pq_rust`):** optional build target for constant-time helpers; not on the ML-KEM hot path until wired and tested.
 * **Mission:** Harvest Now, Decrypt Later — adversaries record encrypted traffic today to decrypt it tomorrow.
 
 ---
@@ -103,8 +102,9 @@ This is the recommended protocol for securing communication against future quant
     # Tier 6: Hybrid Signatures (RSA-PSS + Dilithium5) — requires liboqs-python
     from christman_crypto.tiers.tier6_signatures import HybridSigner
     s   = HybridSigner(use_pq=True)
+    classic_pk, _, pq_pk, _ = s.keygen()
     sig = s.sign(b"document")
-    valid = s.verify(b"document", sig, s.classic.export_public_pem(), s._pq_pk)
+    valid = s.verify(b"document", sig, classic_pk, pq_pk)
 
 ### 4. Steganography (Tier 7)
 

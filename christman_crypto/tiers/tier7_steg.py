@@ -16,10 +16,12 @@ Combined with the encryption tiers above:
   Steganography (no one knows it's there)
 
 Carrier format: PNG or any lossless image (JPEG will destroy LSB data)
-Encoding:       UTF-8 text → bits → LSB of R channel, row by row
-Terminator:     16 zero bits marks end of message
+Encoding:       32-bit big-endian payload length, then UTF-8 bits
+                in the LSB of the red channel, row by row
 
-Capacity:       (width × height) // 8  bytes maximum
+Capacity:       (width × height) // 8 - 4  bytes maximum
+                (4-byte length prefix; a run of zeros cannot be a
+                terminator because UTF-8 payloads contain zeros)
 
 Dependencies: Pillow >= 10.0
 """
@@ -32,7 +34,7 @@ from typing import Union
 class LSBSteganography:
     """Hide and extract text messages in image pixel LSBs."""
 
-    TERMINATOR_BITS = 16   # 16 zero bits = end of message marker
+    LENGTH_BITS = 32   # payload length in bytes, big-endian, before UTF-8 bits
 
     def hide(self, image_input: Union[str, bytes, Image.Image],
              message: str) -> bytes:
@@ -47,29 +49,24 @@ class LSBSteganography:
             PNG bytes of the stego image (visually identical to input)
         """
         img = self._load(image_input).convert("RGB")
-        pixels = list(img.getdata())
-
-        bits = self._text_to_bits(message) + [0] * self.TERMINATOR_BITS
-        capacity = len(pixels)
+        width, height = img.size
+        raw = bytearray(img.tobytes())
+        payload = message.encode("utf-8")
+        length_bits = [(len(payload) >> i) & 1 for i in range(31, -1, -1)]
+        bits = length_bits + self._text_to_bits(message)
+        capacity = width * height
 
         if len(bits) > capacity:
             raise ValueError(
                 f"Message too long: {len(bits)} bits needed, "
-                f"{capacity} pixels available ({capacity // 8} bytes max)."
+                f"{capacity} pixels available ({capacity // 8 - 4} bytes max)."
             )
 
-        new_pixels = []
-        for i, px in enumerate(pixels):
-            if i < len(bits):
-                r, g, b = px
-                r = (r & 0xFE) | bits[i]   # replace LSB of red channel
-                new_pixels.append((r, g, b))
-            else:
-                new_pixels.append(px)
+        for i, bit in enumerate(bits):
+            idx = i * 3
+            raw[idx] = (raw[idx] & 0xFE) | bit
 
-        out = Image.new("RGB", img.size)
-        out.putdata(new_pixels)
-
+        out = Image.frombytes("RGB", (width, height), bytes(raw))
         buf = io.BytesIO()
         out.save(buf, format="PNG")
         return buf.getvalue()
@@ -82,24 +79,18 @@ class LSBSteganography:
             The hidden UTF-8 string, or empty string if none found.
         """
         img = self._load(image_input).convert("RGB")
-        pixels = list(img.getdata())
-
-        bits = [(px[0] & 1) for px in pixels]   # LSB of red channel
-
-        # Collect bits until 16 consecutive zeros (terminator)
-        message_bits = []
-        zero_run = 0
-        for bit in bits:
-            if bit == 0:
-                zero_run += 1
-            else:
-                zero_run = 0
-            message_bits.append(bit)
-            if zero_run >= self.TERMINATOR_BITS:
-                message_bits = message_bits[:-self.TERMINATOR_BITS]
-                break
-
-        return self._bits_to_text(message_bits)
+        raw = img.tobytes()
+        n_pixels = len(raw) // 3
+        bits = [(raw[i * 3] & 1) for i in range(n_pixels)]
+        if len(bits) < self.LENGTH_BITS:
+            return ""
+        length = 0
+        for i in range(self.LENGTH_BITS):
+            length = (length << 1) | bits[i]
+        need = self.LENGTH_BITS + length * 8
+        if length < 0 or need > len(bits):
+            return ""
+        return self._bits_to_text(bits[self.LENGTH_BITS:need])
 
     # ── helpers ──────────────────────────────────────────────────────────────
 
@@ -121,17 +112,15 @@ class LSBSteganography:
 
     @staticmethod
     def _bits_to_text(bits: list) -> str:
-        chars = []
-        for i in range(0, len(bits) - 7, 8):
+        data = bytearray()
+        for i in range(0, len(bits), 8):
+            if i + 8 > len(bits):
+                break
             byte = 0
             for j in range(8):
                 byte = (byte << 1) | bits[i + j]
-            if byte:
-                chars.append(chr(byte))
-        try:
-            return "".join(chars).encode("latin-1").decode("utf-8", errors="ignore")
-        except Exception:
-            return "".join(chars)
+            data.append(byte)
+        return data.decode("utf-8")
 
     @staticmethod
     def max_capacity_bytes(image_input: Union[str, bytes, Image.Image]) -> int:
@@ -143,4 +132,4 @@ class LSBSteganography:
         else:
             img = Image.open(image_input)
         w, h = img.size
-        return (w * h) // 8
+        return max(0, (w * h) // 8 - 4)

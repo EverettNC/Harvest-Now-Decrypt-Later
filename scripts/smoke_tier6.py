@@ -14,14 +14,15 @@ from christman_crypto.tiers.tier6_signatures import HybridSigner  # noqa: E402
 
 
 def main() -> int:
-    signer = HybridSigner(use_pq=True)
+    try:
+        signer = HybridSigner(use_pq=True)
+    except ImportError as exc:
+        print(f"SKIP: {exc}")
+        return 0
     sig = signer.sign(b"smoke")
-    ok = signer.verify(
-        b"smoke",
-        sig,
-        signer.classic.export_public_pem(),
-        signer._pq_pk,
-    )
+    classic_pk, _, pq_pk, _ = signer.keygen()
+    other = HybridSigner(use_pq=True)
+    ok = other.verify(b"smoke", sig, classic_pk, pq_pk)
     if not ok:
         print("FAIL: tier6 verify")
         return 1

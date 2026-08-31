@@ -56,9 +56,11 @@ export HNDL_CRYPTO_REPO=~/Harvest-Now-Decrypt-Later
 python3 scripts/smoke_pq.py   # PQ round-trip
 ```
 
+Public install (same Python-lock KEM): `pip install "christman-crypto>=1.1.0"`.
+
 System dependency for PQ seal: **libsodium** (`brew install libsodium` on macOS).
 
-Optional: `pip install liboqs-python` for tier-6 hybrid signatures; `pip install cryptography` if tiers 2–5 are not already in your Python env.
+Tiers 2–6 need `cryptography`. Optional: `liboqs-python` for tier-6 hybrid signatures.
 
 ---
 

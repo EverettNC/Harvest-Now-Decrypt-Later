@@ -18,7 +18,7 @@ Author : Everett Christman  |  The Christman AI Project
 License: Apache 2.0
 """
 
-__version__  = "1.0.0"
+__version__  = "1.1.0"
 __author__   = "Everett Christman"
 __project__  = "The Christman AI Project"
 
